@@ -8,6 +8,20 @@
     <packaging>mule-application</packaging>
 
 	<name>sap-sys-api</name>
+	
+	<distributionManagement>
+		<repository>
+			<id>local-nexus</id>
+			<layout>default</layout>
+			<url>http://nexus/repository/maven-releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>local-nexus</id>
+                        <layout>default</layout>
+			<url>http://nexus/repository/maven-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+	
 
     <properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
