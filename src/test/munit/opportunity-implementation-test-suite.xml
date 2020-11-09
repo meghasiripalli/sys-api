@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="opportunity-implementation-test-suite.xml" />
+	<munit:test name="migrate-single-opportunity-of-existing-customer-to-SAP-flow-test" doc:id="2820747f-df4b-4ccd-86f8-ad88de6521bd">
+		<munit:behavior >
+			<munit:set-event doc:name="Set Input" doc:id="9380e2d1-941e-4cc3-a598-43a0a1c802e3" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://migratesingleopportunitytoSAPflowtest\set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://migratesingleopportunitytoSAPflowtest\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to migrate-single-opportunity-to-SAP-flow" doc:id="636b14a1-88bc-4232-bab7-7c43bba41640" name="migrate-single-opportunity-to-SAP-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="e74378a8-98ba-4402-8abf-f8a3d2b7d4fd" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import migratesingleopportunitytoSAPflowtest::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:assert-equals doc:name="Assert equals payload" doc:id="fa677041-eab0-4859-ae45-371896d66eb9" actual="#[payload]" expected="New Sales Order created."/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="migrate-opportunity-of-new-customer-to-SAP-test-flow" doc:id="da353583-86e9-46b9-bd1d-ad3927af9280">
+		<munit:behavior >
+			<munit:set-event doc:name="Set Input" doc:id="aac98fb8-5fc7-4b1d-898a-e46ba0b89123" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://sample_data/new_customer_platform_event_input.json')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://migratesingleopportunitytoSAPflowtest\set-event_attributes.dwl')]" />
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="a95f97b7-c605-456b-b288-531dc9fc3b50" processor="sap:sync-rfc">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="BAPI_CUSTOMER_FIND" attributeName="key" />
+					<munit-tools:with-attribute whereValue="sapConfig" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('sample_data\customer-not-found-response.xml')]" mediaType="application/xml" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="92f3d743-c289-439f-a4a2-f2105bc120c6" processor="sap:sync-rfc">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="sapConfig" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('sample_data\create_order_response_for_non_existing_customer.xml')]" mediaType="application/xml" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		
+</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to migrate-single-opportunity-to-SAP-flow" doc:id="c398a810-6f01-411d-8297-e70b2033de3b" name="migrate-single-opportunity-to-SAP-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals payload" doc:id="5f9351d7-1f0a-44db-846d-76c97be858b5" actual="#[payload]" expected="New Sales Order not created."/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="sap-connectivity-error-Test" doc:id="7cbea58b-b7fe-4578-9281-197f0cbd81e7" expectedErrorType="SAP:CONNECTIVITY">
+		<munit:behavior >
+			<munit:set-event doc:name="Set Input" doc:id="adf1ad62-0e00-40fa-a26f-ff81609fbbbf" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://sample_data/new_customer_platform_event_input.json')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://migratesingleopportunitytoSAPflowtest\set-event_attributes.dwl')]" />
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="1913b816-0e72-4407-83a6-5bf84b6d577e" processor="sap:sync-rfc">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="sapConfig" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="SAP:CONNECTIVITY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		
+</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to migrate-single-opportunity-to-SAP-flow" doc:id="c3dd4388-b8f9-4220-88c9-f07ac7dd8c7f" name="migrate-single-opportunity-to-SAP-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals payload" doc:id="9b731682-0c15-4b8d-ad54-aa17793ff37c" actual="#[payload]" expected='#["Unable to connect to SAP. Try again."]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="mule-expression-error-Test" doc:id="9a8a07ec-829a-424a-82b7-af8fa0182ef8" expectedErrorType="EXPRESSION">
+		<munit:behavior >
+			<munit:set-event doc:name="Set Input" doc:id="2eb1cf94-f058-4259-9e51-2ec1190f1e3d" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://sample_data/new_customer_platform_event_input.json')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://migratesingleopportunitytoSAPflowtest\set-event_attributes.dwl')]" />
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="a67b9c9c-13a5-4ac5-9aaa-44943f53dd10" processor="sap:sync-rfc">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="sapConfig" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="EXPRESSION" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to migrate-single-opportunity-to-SAP-flow" doc:id="fd4977a9-d66b-49b6-8ef3-7b2c0714bcd8" name="migrate-single-opportunity-to-SAP-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals payload" doc:id="813e618a-aee8-47db-9855-f454a61d3fcb" actual="#[payload]" expected='#["Unable to complete the request. Check your request."]'/>
+		</munit:validation>
+	</munit:test>
+		
+
+
+</mule>

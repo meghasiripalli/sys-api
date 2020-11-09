@@ -1,0 +1,57 @@
+#%RAML 1.0 DataType
+
+description: Case Data from Salesforce
+type: object
+properties:
+  active:
+    description: case is active or not
+    type: boolean
+    required: false
+  assignment_group:
+    description: Assignment Group
+    type: string
+    required: false
+  business_service:
+    description: Business Service Group
+    type: string
+    required: false
+  category:
+    description: category
+    type: string
+    required: false
+  contact_type:
+    description: contact type
+    type: string
+    required: false
+  description:
+    description: case description
+    type: string
+    required: false
+  escalation:
+    description: is escalted
+    type: number
+    required: false
+  expected_start:
+    description: expected start
+    type: string
+    required: false
+  made_sla:
+    description: sla
+    type: boolean
+    required: false
+  opened_at:
+    description: case opening date
+    type: string
+    required: false
+  short_description:
+    description: case subject
+    type: string
+    required: false
+  state:
+    description: case status
+    type: string
+    required: false
+  urgency:
+    description: case priority
+    type: string
+    required: false 

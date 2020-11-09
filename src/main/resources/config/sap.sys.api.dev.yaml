@@ -1,0 +1,28 @@
+sap:
+  username: "![0YxIKRNfeFM=]"
+  password: "![u0Huvibx2SkvpvRvwRWtug==]"
+  systemNumber: "01"
+  clientId: "![3pxM3D8cVsY=]"
+  host: "sap2.remoteides.com"
+  default:
+    accountGroup: "0001"
+mq:
+  user: "![rqaeoccloxk=]"
+  password: "![rqaeoccloxk=]"
+  tcp: "tcp://DESKTOP-BKJKNO0:61616"
+  
+http_cpi:
+  host: "c3a404aetrial.it-cpitrial-rt.cfapps.us10.hana.ondemand.com1"
+  port: "443"
+  user: "![8XC4il3cUD+Ya006TsEfHhNcmblKphOCfX+bWl24u8+7NSt0B1LQXoLGBEaXDw5soRhvCmRFuRJVbmARAFd8ntAx6ho+Vn9wObhceZJcgk0=]"
+  password: "![095VQqX7qwijQYmKzr9+GWrkGG3RNwxjApnp3gd0WaaDYN1sYQFLvEltqIvcVuHLQvWNPh0lIIB3yidvWxluCVlOf7Wxd6J9v409LTMB3UlUvgul7Z9dDQ==]"
+  
+json:
+  logger:
+    application:
+      name: ${project.artifactId}
+      version: ${project.version}
+    disabledFields: ""
+
+mule:
+  env: ""

@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:sap="http://www.mulesoft.org/schema/mule/sap"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+	<sub-flow name="get-account-in-SAP-subFlow" doc:id="0161431c-d4a4-4436-ae8a-7796c32184dc" >
+		<ee:transform doc:name="Set XML input" doc:id="94bf7e32-0706-4ae1-b3f4-357197fc42df" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+  "BAPI_CUSTOMER_FIND": {
+    "import": {
+      "MAX_CNT": "0",
+      "PL_HOLD": "X"
+    },
+    "tables": {
+      "SELOPT_TAB": {
+        "row": {
+          "TABNAME": "KNA1",
+          "FIELDNAME": "NAME1",
+          "FIELDVALUE": if(sizeOf(payload.name) > 20) (payload.name[0 to 19]) else payload.name
+        }
+      }
+    }
+  }
+}]]></ee:set-payload>
+						</ee:message>
+						<ee:variables>
+							<ee:set-variable variableName="event"><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<sap:sync-rfc doc:name="Find Customer By Name"
+						doc:id="31d024ec-2b59-4591-b1de-400560992cc5"
+						key="BAPI_CUSTOMER_FIND" config-ref="sapConfig" />
+					<ee:transform
+						doc:name="Transform BAPI_CUSTOMER_FIND to Customer"
+						doc:id="f14ecacb-b308-4661-b0b0-f424debdd185">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload."BAPI_CUSTOMER_FIND".tables."RESULT_TAB".*row map 
+{
+	(customerNumber : $.CUSTOMER) if ($.CUSTOMER != null)
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<choice doc:name="Is New Customer?"
+						doc:id="3b9a64f2-aa0f-40fa-a953-d72973789f15">
+						<when expression="#[payload.CustomerNumber[0] != null]">
+							<ee:transform doc:name="Set XML input"
+								doc:id="9aed639e-1e7e-4695-9c7d-67df930d0344">
+								<ee:message>
+									<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+{
+  "CUSTOMER_GET_KTOKD": {
+    "import": {
+      "IV_KUNNR": payload.CustomerNumber[0]
+    }
+  }
+}]]></ee:set-payload>
+								</ee:message>
+								<ee:variables>
+									<ee:set-variable variableName="customerNumber"><![CDATA[%dw 2.0
+output application/java
+---
+payload.CustomerNumber[0]]]></ee:set-variable>
+								</ee:variables>
+							</ee:transform>
+							<sap:sync-rfc doc:name="Get Account Group from SAP"
+								doc:id="379df106-2af7-4b3a-9be9-49087b33fbca"
+								key="CUSTOMER_GET_KTOKD" config-ref="sapConfig" />
+							<ee:transform
+								doc:name="Transform CUSTOMER_GET_KTOKD to AccountGroup"
+								doc:id="8b0c35c8-fcb5-49b7-8d43-14b69437ef12">
+								<ee:message>
+									<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+vars.event ++ {
+	customerNumber: vars.customerNumber,
+	accountGroup : payload."CUSTOMER_GET_KTOKD".export."EV_KTOKD"
+}]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</when>
+						<otherwise>
+							<ee:transform doc:name="Set XML input"
+								doc:id="d6cd911c-5f19-4f6a-8d5b-33ff86093e0f">
+								<ee:message>
+									<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+{
+  "BAPI_CUSTOMER_GETINTNUMBER": {
+    "import": {
+      "ACCOUNTGROUP": "${sap.default.accountGroup}"
+    }
+  }
+}]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+							<sap:sync-rfc doc:name="Get Next Customer from SAP"
+								doc:id="f76f282c-fede-41dd-bae1-d9d80bffcfa7"
+								key="BAPI_CUSTOMER_GETINTNUMBER" config-ref="sapConfig" />
+							<ee:transform
+								doc:name="Transform BAPI_CUSTOMER_GETINTINUMBER to CustomerNumber"
+								doc:id="db150432-0e51-4e29-b72e-422d36783747">
+								<ee:message>
+									<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+vars.event ++
+{
+	customerNumber : payload."BAPI_CUSTOMER_GETINTNUMBER".export.CUSTOMERID
+}]]></ee:set-payload>
+								</ee:message>
+								<ee:variables>
+									<ee:set-variable variableName="customerNumber"><![CDATA[%dw 2.0
+output application/java
+---
+payload."BAPI_CUSTOMER_GETINTNUMBER".export.CUSTOMERID]]></ee:set-variable>
+
+								</ee:variables>
+							</ee:transform>
+						</otherwise>
+					</choice>
+	</sub-flow>
+	<sub-flow name="upsert-Account-in-SAP-subFlow" doc:id="a9ec7381-db7f-4d3f-84ce-57b86d3debae" >
+		<!--<json-logger:logger doc:name="Log Customer to upsert into SAP" doc:id="42dbce5c-df07-499b-8c91-f6734a2940e3" config-ref="jsonLoggerConfig" message="Log Customer to upsert into SAP: "/>
+					-->
+					<ee:transform
+						doc:name="Transform Salesforce Event to DEBMAS01"
+						doc:id="9d09896e-0295-46fe-9c87-4dc51883048a">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+DEBMAS01: {
+	IDOC @(BEGIN: "1"): {
+		"EDI_DC40" @(SEGMENT: "1"): {
+			"TABNAM": "EDI_DC40",
+			"DIRECT": "2",
+			"IDOCTYP": "DEBMAS01",
+			"MESTYP": "DEBMAS",
+			"SNDPOR": "APOCLNT810",
+			"SNDPRT": "LS",
+			"SNDPRN": "APOCLNT810",
+			"RCVPOR": "T90CLNT090",
+			"RCVPRT": "LS",
+			"RCVPRN": "T90CLNT090"
+		},
+		E1KNA1M @(SEGMENT: "1"): {
+			//setup properties for update or create (005 for update and 009 for create)
+			"MSGFN": if (payload.accountGroup == null) "009" else "005",
+			"KUNNR": payload.customerNumber,
+			"KTOKD": if (payload.accountGroup != null) payload.accountGroup
+				   else p('sap.default.accountGroup'),
+			"LAND1": "SK",
+			"NAME1": if (sizeOf(payload.name) <= 20) payload.name else payload.name[0 to 19],
+			("ORT01": payload.billingCity) if (payload.billingCity != null),
+			("PSTLZ": payload.billingPostalCode) if (payload.billingPostalCode != null),
+			("STRAS": payload.billingStreet) if (payload.billingStreet != null),
+			("TELF1": payload.phone) if (payload.phone != null),
+			"SPRAS": "E",
+			"SPRAS_ISO": "EN"				
+		}
+	}
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<sap:send doc:name="Upsert Customer in SAP"
+						doc:id="19af2c59-b6ac-4cd5-9223-4a8a7202b3f7" key="DEBMAS01"
+						config-ref="sapConfig" />
+					<!--<json-logger:logger doc:name="Log Upsert Customer Result" doc:id="8f4df9cd-c7cc-47a0-9bde-45590e987848" config-ref="jsonLoggerConfig" message="Customer upserted in SAP." />
+	-->
+	</sub-flow>
+	<sub-flow name="create-sales-order-in-SAP-subFlow" doc:id="abdae064-6994-4590-a128-b69d5a27d41c" >
+		<ee:transform doc:name="Set XML Input"
+						doc:id="763c5802-7bad-4b76-9efa-d3557fcda509">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+"BAPI_SALESORDER_CREATEFROMDAT2":{
+	"import":{
+		"ORDER_HEADER_IN": {
+			"DOC_TYPE": "TA",
+			"SALES_ORG": vars.event.salesOrganization,
+			"DISTR_CHAN": vars.event.distributionChannel,
+			"DIVISION": vars.event.division
+		},
+		"tables":{
+			"ORDER_PARTNERS": {
+				"row" @(id: 1): {
+					"PARTN_ROLE": "AG",
+					"PARTN_NUMB": vars.customerNumber 
+				}
+			}
+		}
+	}
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<!--
+<json-logger:logger doc:name="Log data sent to BAPI_SALESORDER_CREATEFROMDAT2" doc:id="b2a32f65-0925-427a-90a9-5dc94f32e0d0" config-ref="jsonLoggerConfig" message="Order data sent to SAP ."/>
+					-->
+					<sap:sync-rfc doc:name="Create Sales Order"
+						doc:id="f14238a0-1cdb-4f70-a864-70f927ea9ad8"
+						key="BAPI_SALESORDER_CREATEFROMDAT2" config-ref="sapConfig" />
+					<!--<json-logger:logger doc:name="Log Create Order Result" doc:id="27c7b77c-5290-4802-96a0-ba43a9cf48df" config-ref="jsonLoggerConfig" message="Response received from SAP for Creating Sales Order. " />
+-->
+		<ee:transform doc:name="Transform Message" doc:id="8625ab24-0911-4347-a70a-15e90bc8b9dd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (payload.BAPI_SALESORDER_CREATEFROMDAT2.export.SALESDOCUMENT != null)
+	"New Sales Order created."
+else
+	"New Sales Order not created."]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<flow name="migrate-single-opportunity-to-SAP-flow" doc:id="5a935055-524b-4727-b2aa-d4e79a0413bf" >
+		<flow-ref doc:name="Get Account in SAP" doc:id="c8309d4b-5c8d-46db-b004-128ab073d11f" name="get-account-in-SAP-subFlow"/>
+		<flow-ref doc:name="Upsert Account in SAP" doc:id="8f4d4b80-52d9-47e5-b406-2c893eee8d51" name="upsert-Account-in-SAP-subFlow"/>
+		<flow-ref doc:name="Create Order in SAP" doc:id="da3070e3-d0d6-4d35-964d-9334c6f2b119" name="create-sales-order-in-SAP-subFlow"/>
+	</flow>
+<!--	
+	<flow name="migrate-opportunities-to-sap-flow" doc:id="be301cb8-ac8d-48b4-b7b4-ee8afec7c973" >
+		<http:listener doc:name="streamListener" doc:id="2c094e65-ace5-47dc-a6e7-130b7dbe29d5" config-ref="httpListenerConfig" path="/orders">
+			<http:response >
+				<http:body ><![CDATA[Executing batch job to migrate opportunities to SAP.]]></http:body>
+			</http:response>
+		</http:listener>
+		<json-logger:logger doc:name="Log input Opportunity data received" doc:id="a1dfd8b9-6418-4cbb-ad70-3a4dcc11d95d" config-ref="jsonLoggerConfig" message="Opportunity data received from sf-event-exp-api: "/>
+		<batch:job jobName="migrateSfdcEvents2sapBatchJob2" doc:id="c16004ab-7dfc-49dc-b187-52012b2328d5" >
+			<batch:process-records >
+				<batch:step name="forEachAccountInSalesforceGetAccountInSAP" doc:id="0db1c666-28d9-452c-8c6f-00da3a2a6549" >
+					<flow-ref doc:name="Get Account in SAP" doc:id="971eb693-f1db-4450-a8b9-22f5fb525974" name="get-account-in-SAP-subFlow"/>	
+				</batch:step>
+				<batch:step
+					name="forEachAccountInSalesforceUpsertAccountInSAPStep"
+					doc:id="ab4ceb55-4d8c-461b-93f4-55e4d12b292e">
+					<flow-ref doc:name="Upsert Account in SAP" doc:id="287ac518-ea5b-4e92-9af2-7793ab133ad3" name="upsert-Account-in-SAP-subFlow" />
+
+				</batch:step>
+				<batch:step
+					name="foreachEventInSalesforceCreateOrderInSAP"
+					doc:id="a2a3c80c-b5ef-4c4f-987f-5ed8058dea38">
+					<flow-ref doc:name="Create Order in SAP" doc:id="0698e28d-0b65-45f2-aef1-183ca24c8f07" name="create-sales-order-in-SAP-subFlow" />
+
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete>
+				<ee:transform doc:name="Prepare migration result"
+					doc:id="1ca2b494-338b-465e-8717-6dc28dbc30d4">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+-&#45;&#45;
+"Migration Report: \n"
+
+++ "\n Time [milliseconds]: " 		++ payload.elapsedTimeInMillis!
+++ "\n Total Records: "				++ payload.totalRecords!
+++ "\n Successful Records: "		++ payload.successfulRecords!
+++ "\n Failed Records: "			++ payload.failedRecords!
+++ "\n Loaded Records: "			++ payload.loadedRecords!
+++ "\n Processed Records: " 		++ payload.processedRecords!]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="Log Migration Report" doc:id="80cc5ef6-82f5-428a-9546-227df95a4506" config-ref="jsonLoggerConfig" message="Migration process has finished: ">
+					<json-logger:content ><![CDATA[#[payload]]]></json-logger:content>
+				</json-logger:logger>
+			</batch:on-complete>
+		</batch:job>
+					
+	</flow>
+-->
+
+	<flow name="caseObject-mule-CPI" doc:id="567e3c3f-07ec-49b4-b9b7-732fd2668f1c">
+		<try doc:name="Try" doc:id="efae95ad-86ba-47a1-8db2-ce5d527dacd2">
+			<http:request method="GET" doc:name="Fetch CPI IFLOW Token" doc:id="6811d7c6-69e1-472e-bce9-cdaf40358aa4" config-ref="httpRequestConfiguration" path="/gw/odata/SAP/SFDC-TO-ERP-CASE;v=1">
+			<http:body><![CDATA[#[{}]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"X-CSRF-Token" : "Fetch"
+}]]]></http:headers>
+		</http:request>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate-CPI Token Fetch" doc:id="23f5670b-0cb7-4912-83f2-dbf20e22c785" type="ANY">
+					<flow-ref doc:name="Flow Reference" doc:id="07d99c17-1e4e-4903-b414-e584d22e2b34" name="CaseObject_failedmsg_backup"/>
+					<set-payload value='#[output application/json
+---
+{
+	"status": "CPI IFLOW token fetch failed",
+	"errortype": error.errorType,
+	"error.description": error.description
+}]' doc:name="Set Payload" doc:id="2c109937-f743-4ede-8273-3efc59c0eccf" />
+					<raise-error doc:name="Raise error" doc:id="bd2db043-7836-416f-a48f-a56df1a4f543" type="ANY" description='#[output application/json --- "$(payload.^raw as String)"]'/>
+				
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		
+		
+		<try doc:name="Try" doc:id="c30f3502-8962-439e-9412-ffd74d97f4f4" >
+			<http:request method="POST" doc:name="Send msg to CPI" doc:id="c6152d2d-1628-474b-bb98-549196eb76ef" config-ref="httpRequestConfiguration" path="/gw/odata/SAP/SFDC-TO-ERP-CASE;v=1/caseSet">
+			<http:body><![CDATA[#[vars."case"]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"X-CSRF-Token" : attributes.headers."X-CSRF-Token"	
+}]]]></http:headers>
+		</http:request>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate-Send msg to CPI" doc:id="b93ea10b-4cf4-48ef-8870-5ef51d2890f2" type="ANY">
+					<flow-ref doc:name="Flow Reference" doc:id="8b894cec-134f-41b3-ba51-ee112a84c8bf" name="CaseObject_failedmsg_backup"/>
+					<set-payload value='#[output application/json
+---
+{
+	"status": "Failed to send message to CPI",
+	"errortype": error.errorType,
+	"error.description": error.description
+}]' doc:name="Set Payload" doc:id="299f54ae-f68a-4bfd-a66f-cbb6c5ab5f9a" />
+					<raise-error doc:name="Raise error" doc:id="1560cd33-5634-4dd7-be46-ba8619ebe666" type="ANY" description='#[output application/json --- "$(payload.^raw as String)"]'/>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+	</flow>
+	
+	<flow name="CaseObject_failedmsg_backup" doc:id="620da5da-c6f8-4c2b-b69c-7908daec2e62" >
+		<jms:publish doc:name="Publish" doc:id="d63b28c2-54af-41ca-b80a-6825e6b7b81d" config-ref="JMS_Config" destination="mule-to-cpi-failed-msgs">
+			<jms:message >
+				<jms:body ><![CDATA[#[vars."case"]]]></jms:body>
+			</jms:message>
+		</jms:publish>
+	</flow>
+</mule>

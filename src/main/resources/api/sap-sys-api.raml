@@ -1,0 +1,67 @@
+#%RAML 1.0
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/4ff69113-ba46-41e0-bc53-a2e4af420a7a/ # 
+title: sap-sys-api
+
+traits:
+  http-responses: !include /resources/traits/httpResponsesTrait.raml
+types:
+  Opportunity: !include /resources/datatypes/opportunityDataType.raml
+  Case: !include /resources/datatypes/caseDataType.raml
+  
+
+/orders:
+  is: [http-responses]
+  displayName: Sales Orders
+  post:
+    displayName: Create Orders
+    description: Create Sales Orders in SAP
+    body:
+      application/json:
+        displayName: Opportunity Data
+        description: Opportunity Data to be sent to SAP
+        type: Opportunity[]
+        example: !include /resources/examples/opportunitiesExample.raml
+    responses:
+      200:
+        body:
+          application/json:
+            example: Executing batch job to migrate opportunities to SAP.
+  /order:
+    is: [http-responses]
+    displayName: Sales Order
+    post:
+      displayName: Create Order
+      description: Create Sales Order in SAP
+      body:
+        application/json:
+          displayName: Opportunity Data
+          description: Opportunity Data to be sent to SAP
+          type: Opportunity
+          example: !include resources/examples/opportunityExample.raml
+      responses:
+        200:
+          body:
+            application/json:
+              example: New Sales Order created.
+/case:
+    is: [http-responses]
+    displayName: Case object
+    post:
+      description: Case object Replication to ServiceNow
+      headers:
+        
+      body:
+        application/json:
+          type: Case
+          example: !include /resources/examples/caseExample.raml
+      responses:
+        200: 
+         body:
+          application/json:
+            example: Incident created in ServiceNow
+              
+            
+          
+            
+
+
