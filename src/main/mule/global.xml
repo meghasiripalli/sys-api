@@ -34,7 +34,7 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 			<jms:factory-configuration brokerUrl="${mq.tcp}" />
 		</jms:active-mq-connection>
 	</jms:config>
-	<json-logger:config name="jsonLoggerConfig" doc:name="JSON Logger Config" doc:id="ee3aae5a-d874-413e-bedb-723003615551" environment="${mule.env}" disabledFields="${json.logger.disabledFields}"/>
+	
 	<configuration doc:name="Configuration" doc:id="199aedf1-cbf3-472e-bf5f-3dac53610443" defaultErrorHandler-ref="globalErrorHandler" />
 	<global-property doc:name="Global Property" doc:id="4a5e92b5-cc66-4277-80ce-07da64a08d86" name="env" value="dev" />
 	<secure-properties:config name="securePropertiesConfig" doc:name="Secure Properties Config" doc:id="43c55736-6be4-4b3c-91c2-af3e369623ec" file="config\sap.sys.api.${env}.yaml" key="${key}" >
@@ -52,7 +52,7 @@ output application/json
 	"errorType": error.errorType,
 	"errorDescription": error.description
 }]' doc:name="Set Payload" doc:id="dbcf8c1d-15b7-4eb0-b7a5-81529732d109" />
-			<json-logger:logger doc:name="Log SAP Error" doc:id="f42230e0-90a8-4ff1-9959-2105c61d5edc" config-ref="jsonLoggerConfig" message="SAP ERROR" priority="ERROR"/>
+			
 			
 </on-error-propagate>
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7168387f-e1fa-49ce-987a-74eeb0b4be00" type="EXPRESSION, STREAM_MAXIMUM_SIZE_EXCEEDED">
@@ -64,7 +64,7 @@ output application/json
 	"errortype": error.errorType,
 	"error.description": error.description
 }]' doc:name="Set Payload" doc:id="092c71a8-44d7-491c-b95e-8a06422b9087" />
-			<json-logger:logger doc:name="Log Error" doc:id="f51b83ef-4050-45e9-a995-34e222f508f8" config-ref="jsonLoggerConfig" message="ERROR" priority="ERROR"/>
+			
 		</on-error-propagate>
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="de76c889-45ea-455f-a305-d00f1734feb8" type="ANY">
 			<set-payload value='#[%dw 2.0
@@ -75,7 +75,7 @@ output application/json
 	"errortype": error.errorType,
 	"error.description": error.description
 }]' doc:name="Set Payload" doc:id="18543a77-bb6c-4f0d-82b5-ec8cdbdf78ad" />
-			<json-logger:logger doc:name="Log Critical Error" doc:id="5f0ebb66-4372-439f-9a58-0ed45c4b663b" config-ref="jsonLoggerConfig" message="CRITICAL ERROR" priority="ERROR"/>
+			
 		</on-error-propagate>
 	</error-handler>
 </mule>
