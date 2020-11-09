@@ -10,18 +10,11 @@
 	<name>sap-sys-api</name>
 	
 	<distributionManagement>
-		<repository>
-			<id>local-nexus</id>
-			<layout>default</layout>
-			<url>http://nexus/repository/maven-releases/</url>
-		</repository>
-		<snapshotRepository>
-			<id>local-nexus</id>
-                        <layout>default</layout>
-			<url>http://nexus/repository/maven-snapshots/</url>
-		</snapshotRepository>
-	</distributionManagement>
-	
+        <repository>
+            <id>nexus-site</id>
+            <url>http://central_nexus/server</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
