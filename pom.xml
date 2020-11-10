@@ -96,6 +96,40 @@
         </plugins>
 	</build>
 
+	<profile>
+			<id>cloudhub</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.mule.tools.maven</groupId>
+						<artifactId>mule-maven-plugin</artifactId>
+						<configuration>
+							<cloudHubDeployment>
+								<muleVersion>4.3.0</muleVersion>
+								<username>MeghaNOV</username>
+								<password>MeghaNov@12345</password>
+								<applicationName>sap-sys-api</applicationName>
+								<environment>Sandbox</environment>
+								<workerType>MICRO</workerType>								
+								<workers>1</workers>										
+								<uri>https://anypoint.mulesoft.com</uri>								
+							</cloudHubDeployment>
+						</configuration>
+						<executions>
+							<execution>
+								<id>deploy</id>
+								<phase>deploy</phase>
+								<goals>
+									<goal>deploy</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	
+	
 	<dependencies>
         <dependency>
             <groupId>org.mule.connectors</groupId>
