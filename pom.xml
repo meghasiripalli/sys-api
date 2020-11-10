@@ -50,7 +50,7 @@
 					<muleVersion>4.3.0</muleVersion>
 					<username>MeghaNOV</username>
 					<password>MeghaNov@12345</password>
-					<applicationName>sap-sys-api</applicationName>
+					<applicationName>test-sap-sys-api</applicationName>
 					<environment>Sandbox</environment>
 					<objectStoreV2>true</objectStoreV2>
 					<workerType>MICRO</workerType>
