@@ -43,27 +43,21 @@
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
-				<executions>
-							<execution>
-								<id>deploy</id>
-								<phase>deploy</phase>
-								<goals>
-									<goal>deploy</goal>
-								</goals>
-							</execution>
-						</executions>
+				
 				<configuration>
 					<cloudHubDeployment>
-								<muleVersion>4.3.0</muleVersion>
-								<username>MeghaNOV</username>
-								<password>MeghaNov@12345</password>
-								<applicationName>sap-sys-api</applicationName>
-								<environment>Sandbox</environment>
-								<workerType>MICRO</workerType>								
-								<workers>1</workers>										
-								<uri>https://anypoint.mulesoft.com</uri>								
-							</cloudHubDeployment>
-				<sharedLibraries>
+					<uri>https://anypoint.mulesoft.com</uri>
+					<muleVersion>4.3.0</muleVersion>
+					<username>MeghaNOV</username>
+					<password>MeghaNov@12345</password>
+					<applicationName>sap-sys-api</applicationName>
+					<environment>Sandbox</environment>
+					<objectStoreV2>true</objectStoreV2>
+					<workerType>MICRO</workerType>
+					<workers>1</workers>						
+				</cloudHubDeployment>
+				
+                <sharedLibraries>
                         <sharedLibrary>
                              	<groupId>com.sap.conn.idoc</groupId>
 	    			<artifactId>sapidoc3</artifactId>
@@ -81,7 +75,6 @@
                             <artifactId>activemq-client</artifactId>
                         </sharedLibrary>
                     </sharedLibraries>
-                <classifier>mule-application</classifier>
                 </configuration>
 			</plugin>
 		<plugin>
