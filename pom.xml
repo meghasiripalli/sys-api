@@ -61,8 +61,7 @@
 
 				</cloudHubDeployment>
 				
-                <sharedLibraries>
-                        <sharedLibrary>
+               <sharedLibrary>
                         <groupId>com.sap.conn.jco</groupId>
                         <artifactId>com.sap.conn.jco.sapjco3</artifactId>
                     </sharedLibrary>
