@@ -60,21 +60,17 @@
           </properties>
 
 				</cloudHubDeployment>
-		 <sharedLibraries>		
-               <sharedLibrary>
-                        <groupId>com.sap.conn.jco</groupId>
-                        <artifactId>com.sap.conn.jco.sapjco3</artifactId>
-                    </sharedLibrary>
+				
+                <sharedLibraries>
+                        <sharedLibrary>
+                             	<groupId>com.sap.conn.idoc</groupId>
+	    			<artifactId>sapidoc3</artifactId>
+	    		</sharedLibrary>
+                    	<sharedLibrary>
+                            <groupId>com.sap.conn.jco</groupId>
+                            <artifactId>com.sap.conn.jco.sapjco3</artifactId>
+                        </sharedLibrary>
                     <sharedLibrary>
-                        <groupId>com.sap.conn.idoc</groupId>
-                        <artifactId>com.sap.conn.idoc.sapidoc3</artifactId>
-                    </sharedLibrary>
-                    <sharedLibrary>
-                        <groupId>com.sap.conn.jco</groupId>
-                        <artifactId>libsapjco3</artifactId>
-                    </sharedLibrary>
-                    
-                   <sharedLibrary>
                             <groupId>com.sap.conn.jco</groupId>
                             <artifactId>sapjco3</artifactId>
                         </sharedLibrary>
@@ -131,26 +127,31 @@
             <version>5.1.9</version>
             <classifier>mule-plugin</classifier>
         </dependency>
-	
-		
-		<dependency>
+	<!-- https://mvnrepository.com/artifact/com.sap.conn.idoc/sapidoc3 -->
+	<dependency>
+	    <groupId>com.sap.conn.idoc</groupId>
+	    <artifactId>sapidoc3</artifactId>
+	    <version>3.0.12</version>
+	</dependency>
+	<!--
+    	<dependency>
+            <groupId>com.sap.conn.idoc</groupId>
+            <artifactId>com.sap.conn.idoc.sapidoc3</artifactId>
+            <version>3.x.x</version>
+        </dependency>
+-->
+    	<dependency>
+            <groupId>com.sap.conn.jco</groupId>
+            <artifactId>com.sap.conn.jco.sapjco3</artifactId>
+            <version>3.x.x</version>
+        </dependency>
+    	<dependency>
             <groupId>com.sap.conn.jco</groupId>
             <artifactId>sapjco3</artifactId>
             <version>3.x.x</version>
             <classifier>external-library</classifier>
             <type>dll</type>
         </dependency>
-    	<dependency>
-            <groupId>com.sap.conn.idoc</groupId>
-            <artifactId>com.sap.conn.idoc.sapidoc3</artifactId>
-            <version>3.x.x</version>
-        </dependency>
-    	<dependency>
-            <groupId>com.sap.conn.jco</groupId>
-            <artifactId>com.sap.conn.jco.sapjco3</artifactId>
-            <version>3.x.x</version>
-        </dependency>
-		
     	<dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-client</artifactId>
