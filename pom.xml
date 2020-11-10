@@ -74,11 +74,7 @@
                         <artifactId>libsapjco3</artifactId>
                     </sharedLibrary>
                     
-                    <sharedLibrary>
-                            <groupId>com.mycompany</groupId>
-                            <artifactId>libsapjco-3.0.14</artifactId>
-                        </sharedLibrary>
-                    <sharedLibrary>
+                   
                             <groupId>com.sap.conn.jco</groupId>
                             <artifactId>sapjco3</artifactId>
                         </sharedLibrary>
