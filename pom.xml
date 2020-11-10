@@ -54,7 +54,11 @@
 					<environment>Sandbox</environment>
 					<objectStoreV2>true</objectStoreV2>
 					<workerType>MICRO</workerType>
-					<workers>1</workers>						
+					<workers>1</workers>
+						<properties>
+          <key>mule</key>
+          </properties>
+
 				</cloudHubDeployment>
 				
                 <sharedLibraries>
